@@ -1,0 +1,22 @@
+node default {  
+  
+        file_line {'runinterval':  
+                ensure  => present,  
+                path    => '/etc/puppet/puppet.conf',  
+                line    => 'runinterval=120',  
+                before  => File_line['cache']  
+        }  
+  
+  
+        file_line {'cache':  
+                ensure  => present,  
+                path    => '/etc/puppet/puppet.conf',  
+                line    => 'usecacheonfailure=false'  
+        }  
+  
+        exec {'service puppet restart':  
+                path    => ['/sbin', '/bin','/usr/sbin', '/usr/bin'],  
+                subscribe       => File_line['cache'],  
+                refreshonly     => true  
+        }  
+}
