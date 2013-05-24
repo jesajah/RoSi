@@ -1,0 +1,55 @@
+## == Class: monitor_script
+
+class monitor_script {
+
+$script1 = '/usr/local/bin/add_hosts.sh'
+$script1source = 'puppet:///modules/monitor_script/add_hosts.sh'
+$script2 = '/usr/local/bin/monitor_script.sh'
+$script2source = 'puppet:///modules/monitor_script/monitor_script.sh'
+
+	class {'monitor_script::mount': } ->
+        class {'monitor_script::unmount': }
+}
+
+
+ class monitor_script::mount inherits monitor_script {
+
+	Exec {
+                path    => ['/sbin', '/bin','/usr/sbin', '/usr/bin' ]
+        }
+
+	exec {'mount -t nfs fileserver.rosi.local:/share /mnt':
+                onlyif  => 'grep -c done /root/info_scripts'
+        }
+
+	file {$script1:
+		source	=> $script1source,
+		mode	=> '755',
+ 	}
+
+	exec {$script1:
+		creates	=> 
+		#require		=> File[$script1]
+ 	}
+ 
+ 	file {$script2:
+		source	=> $script2source,
+		mode	=> '755',
+ 	}
+
+	exec {$script2:
+		require	=> exec[$script1],	
+		#require		=> File[$script2]
+ 	}
+ }
+
+ class monitor_script::unmount {
+
+        Exec {
+                path    => ['/sbin', '/bin','/usr/sbin', '/usr/bin' ]
+        }
+
+        exec {'umount /mnt':
+                onlyif  => 'test -d /mnt/packages/'
+        }
+ }
